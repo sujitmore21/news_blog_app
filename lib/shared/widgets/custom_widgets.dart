@@ -123,16 +123,83 @@ class CustomImageWidget extends StatelessWidget {
     this.errorWidget,
   });
 
+  /// Helper method to safely convert double to int if finite
+  int? _getFiniteInt(double? value) {
+    if (value == null) return null;
+    if (!value.isFinite) return null;
+    return value.toInt();
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      width: width,
+      height: height,
+      color: const Color(0xFF2A2A2A),
+      child: const Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2196F3)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      color: const Color(0xFF1E1E1E),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.image_not_supported_outlined,
+            size: 48,
+            color: Colors.grey[600],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Image unavailable',
+            style: TextStyle(color: Colors.grey[500], fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Handle empty or invalid URLs
+    final uri = Uri.tryParse(imageUrl);
+    if (imageUrl.isEmpty || uri == null || !uri.hasScheme) {
+      return _buildErrorWidget(context);
+    }
+
     return CachedNetworkImage(
       imageUrl: imageUrl,
       width: width,
       height: height,
       fit: fit,
-      placeholder: (context, url) => placeholder ?? const CustomLoadingWidget(),
-      errorWidget: (context, url, error) =>
-          errorWidget ?? const Icon(Icons.error),
+      httpHeaders: {
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://www.google.com/',
+        'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+      },
+      placeholder: (context, url) => placeholder ?? _buildPlaceholder(),
+      errorWidget: (context, url, error) {
+        // Log error for debugging (can be removed in production)
+        if (error is Exception) {
+          // Handle 403, 404, or any other HTTP errors gracefully
+        }
+        return errorWidget ?? _buildErrorWidget(context);
+      },
+      // Retry configuration
+      maxHeightDiskCache: 1000,
+      maxWidthDiskCache: 1000,
+      // Handle memcache errors - only set if values are finite (not infinity or NaN)
+      memCacheHeight: _getFiniteInt(height),
+      memCacheWidth: _getFiniteInt(width),
     );
   }
 }

@@ -22,10 +22,10 @@ class NewsApp extends StatelessWidget {
         BlocProvider<AuthCubit>(create: (context) => sl<AuthCubit>()),
       ],
       child: MaterialApp(
-        title: 'News App',
+        title: 'NewsHub',
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.dark, // Default to dark theme for NewsHub look
         home: const AuthWrapper(),
         routes: {
           '/login': (context) => const LoginScreen(),

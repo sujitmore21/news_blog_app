@@ -20,119 +20,123 @@ class NewsArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondaryColor = isDark
+        ? const Color(0xFFB0B0B0)
+        : Colors.grey[600];
+
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.zero,
+      color: Theme.of(context).cardColor,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).dividerColor,
+                width: 0.5,
+              ),
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          article.title,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
+              // Image with overlapping badge
+              if (article.imageUrl.isNotEmpty)
+                Stack(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: 280,
+                      child: CustomImageWidget(
+                        imageUrl: article.imageUrl,
+                        width: double.infinity,
+                        height: 280,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    // "NewsHub" badge overlapping image
+                    Positioned(
+                      top: 16,
+                      left: 16,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          article.description,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: Colors.grey[600]),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        const SizedBox(height: 8),
-                        Row(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.access_time,
-                              size: 16,
-                              color: Colors.grey[600],
+                            Text(
+                              'NewsHub',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              '${article.readTime} min read',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: Colors.grey[600]),
-                            ),
-                            const SizedBox(width: 16),
                             Icon(
-                              Icons.calendar_today,
-                              size: 16,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _formatDate(article.publishedAt),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: Colors.grey[600]),
+                              Icons.grid_view,
+                              color: Colors.white,
+                              size: 12,
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      children: [
-                        CustomImageWidget(
-                          imageUrl: article.imageUrl,
-                          height: 100,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                        if (showBookmarkButton) ...[
-                          const SizedBox(height: 8),
-                          IconButton(
-                            onPressed: onBookmark,
-                            icon: Icon(
-                              article.isBookmarked
-                                  ? Icons.bookmark
-                                  : Icons.bookmark_border,
-                              color: article.isBookmarked
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Source: ${article.source}',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-                    ),
-                  ),
-                  if (article.author.isNotEmpty)
+                  ],
+                ),
+              // Content padding
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title - Large and bold
                     Text(
-                      'By ${article.author}',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                      article.title,
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            height: 1.3,
+                            fontSize: 22,
+                          ),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                ],
+                    const SizedBox(height: 12),
+                    // Article body/description
+                    Text(
+                      article.description.isNotEmpty
+                          ? article.description
+                          : article.content,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.white,
+                        height: 1.6,
+                        fontSize: 16,
+                      ),
+                      maxLines: 8,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 16),
+                    // Metadata: "few hours ago | Author | Source"
+                    Text(
+                      _formatMetadata(),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: textSecondaryColor,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -141,12 +145,29 @@ class NewsArticleCard extends StatelessWidget {
     );
   }
 
+  String _formatMetadata() {
+    final dateStr = _formatDate(article.publishedAt);
+    final author = article.author.isNotEmpty ? article.author : 'Staff';
+    return '$dateStr | $author | ${article.source}';
+  }
+
   String _formatDate(String dateString) {
     try {
       final date = DateTime.parse(dateString);
-      return DateFormat('MMM dd, yyyy').format(date);
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inMinutes < 60) {
+        return '${difference.inMinutes} minutes ago';
+      } else if (difference.inHours < 24) {
+        return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
+      } else {
+        return DateFormat('MMM dd, yyyy').format(date);
+      }
     } catch (e) {
-      return dateString;
+      return 'few hours ago';
     }
   }
 }
@@ -224,27 +245,34 @@ class NewsCategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
               ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.surface,
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Theme.of(context).colorScheme.primary,
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : (isDark ? const Color(0xFF3A3A3A) : Colors.grey.shade300),
             width: 1,
           ),
         ),
         child: Text(
           category.toUpperCase(),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          style: TextStyle(
             color: isSelected
-                ? Theme.of(context).colorScheme.onPrimary
-                : Theme.of(context).colorScheme.primary,
+                ? Colors.white
+                : (isDark ? const Color(0xFFB0B0B0) : Colors.black54),
             fontWeight: FontWeight.bold,
+            fontSize: 13,
+            letterSpacing: 0.5,
           ),
         ),
       ),
