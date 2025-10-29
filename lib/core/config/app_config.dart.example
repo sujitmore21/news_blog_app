@@ -1,0 +1,9 @@
+/// Application configuration template
+/// Copy this file to app_config.dart and add your actual API keys
+/// DO NOT commit app_config.dart to version control.
+class AppConfig {
+  // GNews API Configuration
+  // Get your API key from: https://gnews.io/
+  static const String gnewsApiKey = 'YOUR_GNEWS_API_KEY_HERE';
+}
+
